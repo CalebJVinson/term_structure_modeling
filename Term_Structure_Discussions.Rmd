@@ -1,0 +1,680 @@
+---
+title: "Term Structure Models"
+author: "Caleb Vinson"
+date: " "
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stats)
+library(minpack.lm)
+library(quantmod)
+library(vars)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+```
+
+## Models
+
+```{r, echo=FALSE}
+
+
+# Data for the table
+models <- data.frame(
+  Model = c("Vasicek", "CIR", "Hull-White", "Black-Karasinski", "Nelson-Siegel"),
+  Uniqueness = c(
+    "Mean-reverting with constant volatility.",
+    "Non-negativity via square-root volatility.",
+    "Time-dependent mean reversion.",
+    "Logarithmic modeling of the short rate.",
+    "Empirical yield curve representation."
+  ),
+  Pro = c(
+    "Analytical tractability.",
+    "Ensures positive rates.",
+    "Fits initial yield curve.",
+    "Ensures positive rates.",
+    "Intuitive interpretation of parameters."
+  ),
+  Con = c(
+    "Allows negative rates.",
+    "Difficult to calibrate.",
+    "Increased calibration complexity.",
+    "Requires numerical solutions.",
+    "Lacks arbitrage-free properties."
+  )
+)
+
+kable(models, format = "latex", longtable = T, booktabs = TRUE, caption = "Comparison of Interest Rate Models") %>%
+  kable_styling(full_width = F) %>% 
+  column_spec(1, bold = T) %>% 
+  column_spec(2, width = "10em") %>%
+  column_spec(3, width = "10em") %>%
+  column_spec(4, width = "10em")
+
+```
+
+## Vasicek Model
+
+# Derivation of the Vasicek Model
+
+The Vasicek model is a one-factor short-rate model described by the following stochastic differential equation (SDE):
+
+$$
+dr_t = \kappa (\theta - r_t) dt + \sigma dW_t,
+$$
+
+where:
+- \(r_t\) is the short rate at time \(t\),
+- \(\kappa > 0\) is the speed of mean reversion,
+- \(\theta\) is the long-term mean level of the short rate,
+- \(\sigma > 0\) is the volatility of the short rate,
+- \(W_t\) is a standard Brownian motion.
+
+---
+
+## 1. Mean-Reverting Property
+
+The term \(\kappa (\theta - r_t)\) represents the mean-reverting drift, ensuring that the short rate tends to revert to the long-term mean \(\theta\) over time at a speed determined by \(\kappa\).
+
+---
+
+## 2. Solution of the SDE
+
+To solve the SDE, we use the method of integrating factors. Let us rewrite the SDE:
+
+$$
+dr_t + \kappa r_t dt = \kappa \theta dt + \sigma dW_t.
+$$
+
+Multiply through by \(e^{\kappa t}\), the integrating factor:
+
+$$
+e^{\kappa t} dr_t + \kappa e^{\kappa t} r_t dt = \kappa \theta e^{\kappa t} dt + \sigma e^{\kappa t} dW_t.
+$$
+
+The left-hand side becomes an exact differential:
+
+$$
+d\left(e^{\kappa t} r_t \right) = \kappa \theta e^{\kappa t} dt + \sigma e^{\kappa t} dW_t.
+$$
+
+Integrating both sides from \(0\) to \(t\):
+
+$$
+e^{\kappa t} r_t - r_0 = \int_0^t \kappa \theta e^{\kappa s} ds + \int_0^t \sigma e^{\kappa s} dW_s.
+$$
+
+---
+
+## 3. Simplifying the Deterministic Term
+
+The deterministic integral is:
+
+$$
+\int_0^t \kappa \theta e^{\kappa s} ds = \theta \left(e^{\kappa t} - 1\right).
+$$
+
+---
+
+## 4. Simplifying the Stochastic Term
+
+The stochastic integral remains as:
+
+$$
+\int_0^t \sigma e^{\kappa s} dW_s.
+$$
+
+For now, we leave it as is.
+
+---
+
+## 5. Final Solution
+
+Substituting back, we get:
+
+$$
+r_t = r_0 e^{-\kappa t} + \theta \left(1 - e^{-\kappa t}\right) + \sigma \int_0^t e^{-\kappa (t-s)} dW_s.
+$$
+
+This is the explicit solution to the Vasicek model. The first term represents the decay of the initial short rate, the second term represents the drift toward the mean level \(\theta\), and the third term represents the stochastic component driven by Brownian motion.
+
+
+```{r Vasicek Model, echo=TRUE}
+# Vasicek
+
+# Parameters
+
+# Initial int rate (r0)
+r0 <- 0.03
+
+# Mean Reversion
+a <- 0.1
+b <- 0.05
+
+# volatility
+sigma <- 0.02
+
+T <- 1
+
+dt <- 1/252
+n <- T/dt
+
+# Starting Point
+short_rate <- numeric(n)
+short_rate[1] <- r0
+
+#Vasicek Process
+
+set.seed(123)
+
+
+for (i in 2:n) {
+  # Weiner Process description of Brownian Motion
+  dW <- rnorm(1, mean = 0, sd = sqrt(dt))
+  # Passing process for n periods
+  short_rate[i] <- short_rate[i-1] + a * (b-short_rate[i-1]) * dt + sigma * dW
+}
+
+plot(short_rate, 
+     type = "l", 
+     col = "blue", 
+     xlab = "Time Step", 
+     ylab = "Interest Rate", 
+     main = "Vasicek Model")
+
+```
+
+#  Cox-Ingersol-Ross
+
+## Derivation of the CIR Model
+
+The Vasicek model is given by the following stochastic differential equation (SDE):
+
+\begin{equation}
+dr_t = \kappa (\theta - r_t) dt + \sigma dW_t,
+\label{eq:vasicek}
+\end{equation}
+
+where:
+- \(r_t\) is the short rate,
+- \(\kappa > 0\) is the speed of mean reversion,
+- \(\theta\) is the long-term mean,
+- \(\sigma\) is the volatility,
+- \(W_t\) is a standard Brownian motion.
+
+While the Vasicek model allows negative interest rates, the Cox-Ingersoll-Ross (CIR) model modifies the diffusion term to avoid this.
+
+---
+
+### 1. CIR Model Formulation
+
+The CIR model introduces a square-root term in the volatility to ensure non-negativity of the short rate:
+
+\begin{equation}
+dr_t = \kappa (\theta - r_t) dt + \sigma \sqrt{r_t} \, dW_t.
+\label{eq:cir}
+\end{equation}
+
+Here, the volatility term \(\sigma \sqrt{r_t}\) ensures that as \(r_t \to 0\), the stochastic term diminishes, preventing \(r_t\) from becoming negative.
+
+---
+
+### 2. Mean-Reverting Property
+
+Similar to the Vasicek model, the term \(\kappa (\theta - r_t)\) governs the mean-reverting drift. The CIR model is mean-reverting around \(\theta\) at a speed determined by \(\kappa\).
+
+---
+
+### 3. Solution of the CIR Model
+
+To solve the CIR SDE, we first rewrite it in its general form:
+
+\[
+dr_t = \kappa (\theta - r_t) dt + \sigma \sqrt{r_t} \, dW_t.
+\]
+
+Using Itô's Lemma and the substitution \(r_t = x_t^2\), we rewrite the CIR SDE for \(x_t\):
+
+\begin{equation}
+dx_t = \left(\frac{\kappa \theta}{2x_t} - \frac{\kappa x_t}{2}\right) dt + \frac{\sigma}{2} dW_t.
+\label{eq:transformation}
+\end{equation}
+
+This is a transformed SDE that can be solved numerically or analytically using advanced techniques.
+
+---
+
+### 4. Feller Condition
+
+The Feller condition ensures the non-negativity of \(r_t\):
+
+\begin{equation}
+2\kappa \theta \geq \sigma^2.
+\label{eq:feller}
+\end{equation}
+
+This condition guarantees that the diffusion term \(\sigma \sqrt{r_t}\) does not dominate the drift term \(\kappa (\theta - r_t)\), ensuring that \(r_t \geq 0\).
+
+---
+
+### 5. Final Form
+
+The CIR process can be expressed as:
+
+\begin{equation}
+r_t = r_0 e^{-\kappa t} + \theta \kappa \int_0^t e^{-\kappa (t-s)} ds + \sigma \int_0^t \sqrt{r_s} e^{-\kappa (t-s)} dW_s.
+\label{eq:final_cir}
+\end{equation}
+
+This solution highlights the mean-reverting nature, stochastic component, and the non-negativity feature of the CIR model.
+
+
+```{r CIR Model, echo=TRUE}
+# Cox-Ingersol-Ross (CIR Model)
+# Similar to Vasicek, bound above/at 0
+# Implements additional process onto variance
+
+# Define parameters for the CIR model
+a <- 0.1     # Speed of mean reversion
+b <- 0.05    # Long-term mean
+sigma <- 0.02 # Volatility
+r0 <- 0.03   # Initial interest rate
+T <- 1       # Time horizon in years
+dt <- 1/252  # Daily time step
+n <- T/dt    # Number of steps
+
+# Initialize short rate vector
+short_rate <- numeric(n)
+short_rate[1] <- r0
+
+# Simulate CIR process
+set.seed(123)
+for (i in 2:n) {
+  dW <- rnorm(1, mean = 0, sd = sqrt(dt))
+  short_rate[i] <- short_rate[i-1] + a * (b - short_rate[i-1]) * dt + sigma * sqrt(short_rate[i-1]) * dW
+  short_rate[i] <- max(short_rate[i], 0)  # Ensure non-negativity
+}
+
+# Plot the simulated short rate path
+plot(short_rate, type = "l", col = "darkgreen", xlab = "Time Step", ylab = "Interest Rate", main = "CIR Model Simulation")
+```
+
+
+
+
+
+
+
+# Hull-White Model
+
+
+## Derivation of the Hull-White Model
+
+The Vasicek model is given by the following stochastic differential equation (SDE):
+
+\begin{equation}
+dr_t = \kappa (\theta - r_t) dt + \sigma dW_t,
+\label{eq:vasicek}
+\end{equation}
+
+where:
+- \(r_t\) is the short rate,
+- \(\kappa > 0\) is the speed of mean reversion,
+- \(\theta\) is the long-term mean,
+- \(\sigma\) is the volatility,
+- \(W_t\) is a standard Brownian motion.
+
+While the Vasicek model assumes constant parameters, the **Hull-White model** introduces time-dependent drift to better fit the initial term structure of interest rates.
+
+---
+
+### 1. Hull-White Model Formulation
+
+The Hull-White model modifies the drift term in the Vasicek SDE to include a time-dependent mean \(\theta(t)\):
+
+\begin{equation}
+dr_t = \kappa \big(\theta(t) - r_t\big) dt + \sigma dW_t.
+\label{eq:hullwhite}
+\end{equation}
+
+Here:
+- \(\theta(t)\) is a deterministic function of time, often chosen to fit the initial term structure of interest rates.
+
+---
+
+### 2. Mean-Reverting Property
+
+As with the Vasicek and CIR models, the term \(\kappa (\theta(t) - r_t)\) ensures mean reversion, but now the mean \(\theta(t)\) varies with time, allowing the model to adapt to the initial term structure.
+
+---
+
+### 3. Solution of the Hull-White SDE
+
+To solve the SDE, we rewrite it:
+
+\[
+dr_t + \kappa r_t dt = \kappa \theta(t) dt + \sigma dW_t.
+\]
+
+Multiply through by the integrating factor \(e^{\kappa t}\):
+
+\[
+e^{\kappa t} dr_t + \kappa e^{\kappa t} r_t dt = \kappa \theta(t) e^{\kappa t} dt + \sigma e^{\kappa t} dW_t.
+\]
+
+The left-hand side simplifies to an exact differential:
+
+\[
+d\big(e^{\kappa t} r_t\big) = \kappa \theta(t) e^{\kappa t} dt + \sigma e^{\kappa t} dW_t.
+\]
+
+Integrate both sides from \(0\) to \(t\):
+
+\begin{equation}
+e^{\kappa t} r_t - r_0 = \int_0^t \kappa \theta(s) e^{\kappa s} ds + \int_0^t \sigma e^{\kappa s} dW_s.
+\label{eq:integrated}
+\end{equation}
+
+---
+
+### 4. Simplifying the Deterministic Term
+
+The deterministic integral is:
+
+\begin{equation}
+\int_0^t \kappa \theta(s) e^{\kappa s} ds.
+\label{eq:deterministic}
+\end{equation}
+
+This integral depends on the functional form of \(\theta(t)\). For specific choices of \(\theta(t)\), such as a constant or linear function, it can be solved explicitly.
+
+---
+
+### 5. Stochastic Term
+
+The stochastic integral remains as:
+
+\begin{equation}
+\int_0^t \sigma e^{\kappa s} dW_s.
+\label{eq:stochastic}
+\end{equation}
+
+The stochastic term contributes to the volatility of the short rate and can be expressed as a Wiener process with modified variance.
+
+---
+
+### 6. Final Solution
+
+Combining the deterministic and stochastic components, the solution to the Hull-White model is:
+
+\begin{equation}
+r_t = r_0 e^{-\kappa t} + e^{-\kappa t} \int_0^t \kappa \theta(s) e^{\kappa s} ds + \sigma \int_0^t e^{-\kappa (t-s)} dW_s.
+\label{eq:solution_hw}
+\end{equation}
+
+
+```{r HW Model, echo = TRUE}
+# Hull-White Model
+
+
+#parameters
+a <- 0.1     
+sigma <- 0.02
+r0 <- 0.03   
+T <- 1       
+dt <- 1/252  
+n <- T/dt    
+short_rate <- numeric(n)
+short_rate[1] <- r0
+
+
+set.seed(123)
+for (i in 2:n) {
+  dW <- rnorm(1, mean = 0, sd = sqrt(dt))
+  theta <- 0.05
+  short_rate[i] <- short_rate[i-1] + a * (theta - short_rate[i-1]) * dt + sigma * dW
+}
+
+# Plot the simulated short rate path
+plot(short_rate, type = "l", col = "blue", xlab = "Time Step", ylab = "Interest Rate", main = "Hull-White Model Simulation")
+```
+
+
+# Black - Karasinski Model
+
+## Derivation of the Black-Karasinski Model
+
+The Black-Karasinski model assumes that the logarithm of the short rate follows an Ornstein-Uhlenbeck process. Starting with the Vasicek model:
+
+\[
+dr_t = \kappa (\theta - r_t) dt + \sigma dW_t,
+\]
+
+where:
+- \(r_t\) is the short rate,
+- \(\kappa > 0\) is the mean reversion speed,
+- \(\theta\) is the long-term mean,
+- \(\sigma\) is the volatility,
+- \(W_t\) is a standard Brownian motion.
+
+The Black-Karasinski model modifies this by defining the logarithm of the short rate, \(x_t = \log(r_t)\), as following an Ornstein-Uhlenbeck process:
+
+\[
+dx_t = \kappa (\mu(t) - x_t) dt + \sigma dW_t,
+\]
+
+where:
+- \(x_t = \log(r_t)\),
+- \(\mu(t)\) is a time-dependent mean function.
+
+---
+
+### 1. Model Formulation in Terms of \(r_t\)
+
+Rewriting the SDE in terms of the short rate \(r_t = e^{x_t}\), we have:
+
+\[
+dr_t = r_t \big[\kappa (\mu(t) - \log(r_t)) dt + \sigma dW_t \big].
+\]
+
+This SDE ensures that \(r_t > 0\), since the logarithmic transformation guarantees positivity of \(r_t\) throughout.
+
+---
+
+### 2. Mean-Reverting Property
+
+The drift term \(r_t \kappa (\mu(t) - \log(r_t)) dt\) ensures that the short rate reverts to a time-dependent mean \(e^{\mu(t)}\). This mean-reverting property allows the model to flexibly adapt to changes in the term structure over time.
+
+---
+
+### 3. Solution of the Black-Karasinski Model
+
+To solve the SDE, we first solve for \(x_t\), which satisfies:
+
+\[
+dx_t = \kappa (\mu(t) - x_t) dt + \sigma dW_t.
+\]
+
+Multiply through by \(e^{\kappa t}\), the integrating factor:
+
+\[
+e^{\kappa t} dx_t + \kappa e^{\kappa t} x_t dt = \kappa \mu(t) e^{\kappa t} dt + \sigma e^{\kappa t} dW_t.
+\]
+
+The left-hand side becomes:
+
+\[
+d\big(e^{\kappa t} x_t\big) = \kappa \mu(t) e^{\kappa t} dt + \sigma e^{\kappa t} dW_t.
+\]
+
+Integrating both sides from \(0\) to \(t\), we get:
+
+\[
+x_t = x_0 e^{-\kappa t} + \int_0^t \kappa \mu(s) e^{-\kappa (t-s)} ds + \sigma \int_0^t e^{-\kappa (t-s)} dW_s.
+\]
+
+---
+
+### 4. Back Transformation to \(r_t\)
+
+Returning to the original short rate \(r_t = e^{x_t}\), the solution becomes:
+
+\[
+r_t = r_0^{e^{-\kappa t}} \exp\left(\int_0^t \kappa \mu(s) e^{-\kappa (t-s)} ds + \sigma \int_0^t e^{-\kappa (t-s)} dW_s\right).
+\]
+
+This form highlights the log-normal distribution of \(r_t\) under the Black-Karasinski model.
+
+
+
+
+```{r Black - Karasinski Model}
+# Define parameters for Black-Karasinski model
+a <- 0.1     # Speed of mean reversion
+sigma <- 0.02 # Volatility
+r0 <- 0.03   # Initial interest rate
+T <- 1       # Time horizon in years
+dt <- 1/252  # Daily time step
+n <- T/dt    # Number of steps
+
+# Initialize short rate vector
+short_rate <- numeric(n)
+short_rate[1] <- log(r0)
+
+# Simulate Black-Karasinski process
+set.seed(123)
+for (i in 2:n) {
+  dW <- rnorm(1, mean = 0, sd = sqrt(dt))
+  short_rate[i] <- short_rate[i-1] + a * (log(0.05) - short_rate[i-1]) * dt + sigma * dW
+}
+
+# Convert back to interest rates
+short_rate <- exp(short_rate)
+
+# Plot the simulated short rate path
+plot(short_rate, type = "l", col = "brown", xlab = "Time Step", ylab = "Interest Rate", main = "Black-Karasinski Model Simulation")
+
+```
+
+
+# Nelson - Siegel
+
+## Derivation of the Nelson-Siegel Model
+
+The **Nelson-Siegel model** is a parsimonious representation of the term structure of interest rates. It provides a functional form for the yield curve, characterized by level, slope, and curvature factors.
+
+The yield at time \(t\) for a bond maturing at time \(T\) is expressed as:
+
+$$
+y(t, \tau) = \beta_0 + \beta_1 \frac{1 - e^{-\lambda \tau}}{\lambda \tau} + \beta_2 \left(\frac{1 - e^{-\lambda \tau}}{\lambda \tau} - e^{-\lambda \tau}\right),
+$$
+
+where:
+- \(y(t, \tau)\) is the yield at time \(t\) for maturity \(\tau = T - t\),
+- \(\beta_0, \beta_1, \beta_2\) are parameters that represent level, slope, and curvature,
+- \(\lambda\) is a decay parameter that governs the exponential decay of the slope and curvature factors,
+- \(\tau\) is the time to maturity.
+
+---
+
+## 1. Model Intuition
+
+The Nelson-Siegel model decomposes the yield curve into three components:
+1. **Level (\(\beta_0\))**: Represents the long-term average yield and shifts the entire curve up or down.
+2. **Slope (\(\beta_1\))**: Represents the short-term deviations from the level and controls the steepness of the curve.
+3. **Curvature (\(\beta_2\))**: Captures the hump-shaped behavior of the curve, typically around medium maturities.
+
+The decay parameter \(\lambda\) determines the speed at which the slope and curvature factors decay to zero as maturity increases.
+
+---
+
+## 2. Functional Form
+
+### 2.1. Level Component (\(\beta_0\))
+
+The level factor is independent of \(\tau\), making it constant across all maturities:
+
+$$
+\text{Level: } \beta_0.
+$$
+
+### 2.2. Slope Component (\(\beta_1\))
+
+The slope factor decreases as \(\tau\) increases, with the decay controlled by \(\lambda\):
+
+$$
+\text{Slope: } \beta_1 \frac{1 - e^{-\lambda \tau}}{\lambda \tau}.
+$$
+
+### 2.3. Curvature Component (\(\beta_2\))
+
+The curvature factor increases initially, reaches a maximum, and then decays back to 0 for large \(\tau\):
+
+$$
+\text{Curvature: } \beta_2 \left(\frac{1 - e^{-\lambda \tau}}{\lambda \tau} - e^{-\lambda \tau}\right).
+$$
+
+---
+
+## 3. Special Cases
+
+### 3.1. When \(\lambda \to 0\)
+
+The slope and curvature factors degenerate into linear terms, and the model reduces to a simple linear function of maturity.
+
+### 3.2. When \(\lambda \to \infty\)
+
+The slope factor decays instantaneously, leaving only the level factor (\(\beta_0\)) and curvature factor (\(\beta_2\)) contributing to the yield.
+
+---
+
+## 4. Estimation
+
+The parameters \(\beta_0, \beta_1, \beta_2\), and \(\lambda\) are typically estimated using historical yield curve data by minimizing the squared error between the observed and modeled yields:
+
+$$
+\min_{\beta_0, \beta_1, \beta_2, \lambda} \sum_{\tau} \left[y_{\text{obs}}(t, \tau) - y(t, \tau)\right]^2.
+$$
+
+This estimation provides the best fit for the yield curve at a given time \(t\).
+
+---
+
+## 5. Final Form
+
+The Nelson-Siegel model can be summarized as:
+
+$$
+y(t, \tau) = \beta_0 + \beta_1 \frac{1 - e^{-\lambda \tau}}{\lambda \tau} + \beta_2 \left(\frac{1 - e^{-\lambda \tau}}{\lambda \tau} - e^{-\lambda \tau}\right).
+$$
+
+```{r}
+#Nelson-Siegel Model
+library(minpack.lm)
+
+# Define a function for Nelson-Siegel yield curve
+nelson_siegel <- function(t, beta0, beta1, beta2, lambda) {
+  return(beta0 + beta1 * (1 - exp(-lambda * t)) / (lambda * t) + beta2 * ((1 - exp(-lambda * t)) / (lambda * t) - exp(-lambda * t)))
+}
+
+# Example maturity and yield data
+maturity <- c(1, 2, 3, 5, 7, 10)
+yield <- c(0.02, 0.025, 0.027, 0.03, 0.032, 0.035)
+
+# Fit the Nelson-Siegel model to the data
+ns_model <- nlsLM(yield ~ nelson_siegel(maturity, beta0, beta1, beta2, lambda),
+                  start = list(beta0 = 0.03, beta1 = -0.01, beta2 = 0.01, lambda = 0.5))
+
+# Display model summary
+summary(ns_model)
+
+# Plot the fitted yield curve
+fitted_yield <- predict(ns_model)
+plot(maturity, yield, pch = 19, col = "red", xlab = "Maturity (Years)", ylab = "Yield", main = "Nelson-Siegel Yield Curve")
+lines(maturity, fitted_yield, col = "blue", lwd = 2)
+
+```
+
