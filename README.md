@@ -24,5 +24,7 @@ While I had already understood the discussion above, I developed a further under
 
 ### Term Structure
 
-If we set up a probability space $(\Omega,\mathscr{F},P)$ with a filtration $$\mathbb{F} = \{ \mathscr{F}_t : 0 \leq t \leq T \} $$ of B, where B is a standard Brownian motion of a dimension $d \geq 1 \in \mathscr{R}^d$, we can work with given information for the structure.  
+If we set up a probability space $(\Omega,\mathscr{F},P)$ with a filtration $$\mathbb{F} = \{ \mathscr{F}_t : 0 \leq t \leq T \} $$ of B, where B is a standard Brownian motion of a dimension $d \geq 1 \in \mathscr{R}^d$, we can work with given information for the structure.
+
+From the above description of the short rate, r, we have $\int{0}^{T}|r_t|dt \le \inf$
 ## Heath-Jarrow-Morton Framework
