@@ -30,7 +30,7 @@ From the above description of the short rate, r, we have $\int{0}^{T}|r_t|dt < \
 
 Assuming absence of arbitrage, we can use a probability measure Q with the property that any security with a dividend is a lump-sum payment of Z at s has a price of
 
-$$E_t^{Q}\left[e^{\int{t}^{s} -r_u du} \times Z$$.
+$$E_t^{Q}\left[e^{\int{t}^{s} -r_u du} \right] \times Z$$.
 
 So, we can write a price based on t and s, $\Lambda_{t,s} = F(t,s,r_t)$ for a fixed *F*: $[0,T] \times [0,t] \times \mathscr{R} \rightarrow \mathscr{R}$.
 ## Heath-Jarrow-Morton Framework
