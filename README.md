@@ -8,5 +8,5 @@ When considering the structure of our model we must understand that the market h
 
 ## Coupons of Bonds & Observation for Bootstrapping
 
-When considering a single zero-coupon bond paying 1 at maturity, we let the price for each period (starting at 0) be described by \[B(0,T_j\] where *T* is a set of dates s.t. \[0=T_0 < T_1 < T2 < ... <T_n\] where at each period *T_i* we receive a coupon payment *C*. These are fixed payments \[C_1,C_2,...C_j\]
+When considering a single zero-coupon bond paying 1 at maturity, we let the price for each period (starting at 0) be described by $B(0,T_j$ where *T* is a set of dates s.t. $0=T_0 < T_1 < T2 < ... <T_n$ where at each period *T_i* we receive a coupon payment *C*. These are fixed payments $C_1,C_2,...C_j$
 
