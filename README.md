@@ -59,10 +59,10 @@ where $R(t)$ is the interest rate process and $\alpha, \beta, \text{and }, \sigm
 
 ### Hull - White Model
 
-$$ dR(t) = (a(t) - b(t) R(t)) dt + \sigma(t) d \widetilde(W)(t)$$
+$$ dR(t) = (a(t) - b(t) R(t)) dt + \sigma(t) d \widetilde{W}(t)$$
 
 ### Cox-Ingersoll-Ross (CIR) interest rate model
 
-$$dR(t) = (a-b R(t)) dt + \sigma \sqrt{R(t)} d \widetilde(W)(t)$$ 
+$$dR(t) = (a-b R(t)) dt + \sigma \sqrt{R(t)} d \widetilde{W}(t)$$ 
 
 ## Heath-Jarrow-Morton Framework
