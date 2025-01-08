@@ -53,7 +53,7 @@ We can first describe affine models (linear plus constant models), starting with
 
 ### Vasicek interest rate model
 
-$$dR(t) = (\alpha - \betaR(t))dt + \sigma dW(t)$$
+$$dR(t) = (\alpha - \beta R(t))dt + \sigma dW(t)$$
 
 where $R(t)$ is the interest rate process and $\alpha, \beta, \text{and }, \sigma$ are positive constants. 
 
