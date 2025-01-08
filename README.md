@@ -24,5 +24,5 @@ While I had already understood the discussion above, I developed a further under
 
 ### Term Structure
 
-If we setup a probability space $(\Omega,\mathscr{F},P)\$
+If we set up a probability space $(\Omega,\mathscr{F},P)$ with a filtration $\mathbb{F} = \mathscr{F_t} : 0 \leq t \leq T}$ of B, where B is a standard Brownian motion of a dimension $d \geq 1 \in \mathscr{R}^d$, we can work with given information for the structure.  
 ## Heath-Jarrow-Morton Framework
