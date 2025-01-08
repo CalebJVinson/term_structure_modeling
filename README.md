@@ -16,4 +16,13 @@ We can then use the time passing and payment information to recursively discover
 
 Briefly, we can find the zero-coupon bond price, where the yield can be considered a continuous compounding of the interest rate over the lifetime of the bond.
 
-$$\text{price of zero-coupon bond} = \text{face value} \times e^{yield \times t_{maturity}} $$
+$$\text{price of zero-coupon bond} = \text{face value} \times e^{-yield \times t_{maturity}} $$
+
+From this, there is now a consideration that there is a developing yield curve rather than a singular interest rate. We can think of this as an interpolation of finite maturity-yield pairs observed from the market. The interest rate is sometimes called the short rate and is idealized as corresponding to the shortest maturity yield or the overnight rate offered by the government.
+
+While I had already understood the discussion above, I developed a further understanding of prices from the treatment of zero-coupon bonds under the risk-neutral pricing formula for the affine yield models.
+
+### Term Structure
+
+If we setup a probability space $(\Omega,\mathscr{F},P)\$
+## Heath-Jarrow-Morton Framework
