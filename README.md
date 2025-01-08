@@ -26,5 +26,11 @@ While I had already understood the discussion above, I developed a further under
 
 If we set up a probability space $(\Omega,\mathscr{F},P)$ with a filtration $$\mathbb{F} = \{ \mathscr{F}_t : 0 \leq t \leq T \} $$ of B, where B is a standard Brownian motion of a dimension $d \geq 1 \in \mathscr{R}^d$, we can work with given information for the structure.
 
-From the above description of the short rate, r, we have $\int{0}^{T}|r_t|dt \le \inf$
+From the above description of the short rate, r, we have $\int{0}^{T}|r_t|dt < \inf$. At any time t, we could invest a single unit and achieve a market value at the future value based on $e^{\int{t}^{s}r_u du}$. Which is compounding as the unit reinvests continually at the rate *s*.
+
+Assuming absence of arbitrage, we can use a probability measure Q with the property that any security with a dividend is a lump-sum payment of Z at s has a price of
+
+$$E_t^{Q}\left[e^{\int{t}^{s} -r_u du} \times Z$$.
+
+So, we can write a price based on t and s, $\Lambda_{t,s} = F(t,s,r_t)$ for a fixed *F*: $[0,T] \times [0,t] \times \mathscr{R} \rightarrow \mathscr{R}$.
 ## Heath-Jarrow-Morton Framework
