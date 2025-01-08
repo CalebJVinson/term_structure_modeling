@@ -45,6 +45,24 @@ With this coefficient, a negative value can be viewed as a mean-reversion parame
 
 ### Time varying coefficients
 
-Some of the model differences are based purely on whether coefficients are allowed to vary or remain constant. For example, the *Merton model* of the term structure is called *Ho-Lee model* if coefficients are allowed to vary with time. Each model has its own benefits of use which we can describe
+Some of the model differences are based purely on whether coefficients are allowed to vary or remain constant. For example, the *Merton model* of the term structure is called *Ho-Lee model* if coefficients are allowed to vary with time. 
+
+## Describing Models
+
+We can first describe affine models (linear plus constant models), starting with single-factor models.
+
+### Vasicek interest rate model
+
+$$dR(t) = (\alpha - \betaR(t))dt + \sigma dW(t)$$
+
+where $R(t)$ is the interest rate process and $\alpha, \beta, \text{and }, \sigma$ are positive constants. 
+
+### Hull - White Model
+
+$$ dR(t) = (a(t) - b(t) R(t)) dt + \sigma(t) d \widetilde(W)(t)$$
+
+### Cox-Ingersoll-Ross (CIR) interest rate model
+
+$$dR(t) = (a-b R(t)) dt + \sigma \sqrt{R(t)} d \widetilde(W)(t)$$ 
 
 ## Heath-Jarrow-Morton Framework
