@@ -38,7 +38,7 @@ $$ \Lambda_{t,s} \equiv E_t^{Q} \left[ e^{\int{t}^{s} -r_u du} \right]$$
 
 This process is known as the discount function or *the term structure of interest rates*. The term structure is usually in terms of the yield curve where the continuously compounding yield, $y_{t,\tau}$, is defined by 
 
-$$y_{t,\tau} =  - \fraq{log(\Lambda_{t, t + \tau)}{\tau}$$
+$$ y_{t, \tau} =  - \frac{ log( \Lambda_{t, t + \tau) } { \tau }$$
 
 which can also be represented in terms of forward interest rates. In the models, the short rate is modeled in terms of the standard Brownian motion under Q that comes from Girsanov's Theorem.
 
