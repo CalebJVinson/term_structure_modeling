@@ -22,7 +22,7 @@ From this, there is now a consideration that there is a developing yield curve r
 
 While I had already understood the discussion above, I developed a further understanding of prices from the treatment of zero-coupon bonds under the risk-neutral pricing formula for the affine yield models.
 
-## Term Structure
+# Term Structure
 
 If we set up a probability space $(\Omega,\mathscr{F},P)$ with a filtration $$\mathbb{F} = \{ \mathscr{F}_t : 0 \leq t \leq T \} $$ of B, where B is a standard Brownian motion of a dimension $d \geq 1 \in \mathscr{R}^d$, we can work with given information for the structure.
 
@@ -32,7 +32,22 @@ Assuming absence of arbitrage, we can use a probability measure Q with the prope
 
 $$E_t^{Q}\left[e^{\int{t}^{s} -r_u du} \right] \times Z$$
 
-So, we can write a price based on t and s, $\Lambda_{t,s} = F(t,s,r_t)$ for a fixed *F*: $[0,T] \times [0,T] \times \mathscr{R} \rightarrow \mathscr{R}$.
+where $E^Q$ denotes the $\mathscr{F_t}$-conditional expectation under Q. Z would also be $\mathscr{F_t}$-measurable so the above is well defined. Letting $Z=1$, the price at *t* of the zero-coupon bond that matures at *s* is
+
+$$\Lambda_{t,s} \equiv E_t^{Q}\left[e^{\int{t}^{s} -r_u du \right]$$
+
+This process is known as the discount function or loosely, the term structure of interest rates. The term structure is usually in terms of the yield curve where the continuously compounding yield, $y_{t,\tau}$, is defined by 
+
+$$y_{t,\tau} =  - \fraq{log(\Lambda_{t, t + \tau}{\tau}
+
+which can also be represented in terms of forward interest rates. In the models, the short rate is modeled in terms of the standard Brownian motion under Q that comes from Girsanov's Theorem.
+
+## One-Factor Term-Structure Models
+
+$$dr_t = \mu(r_t, t) dt + \sigma(r_t, t) dB_t^{Q}$$
+
+The short rate in the equation is the only factor on which the current yield curve of the depdends. So, we can write a price based on t and s, $\Lambda_{t,s} = F(t,s,r_t)$ for a fixed *F*: $[0,T] \times [0,T] \times \mathscr{R} \rightarrow \mathscr{R}$.
+
 
 Each model is the sprecial case of an SDE:
 
@@ -40,16 +55,18 @@ $$ dr_t = \left[ K_0(t) + K_1(t)r_t + K_2(t) r_t log(r_t)\right] dt + \left[H_0(
 
 where $K_0, K_1, K_2, H_0,\text{and } H_1$ are continous functions on 0 to T and $v$ is the exponent from 0.5 to 1.5. Each model we discuss has different forms with inclusions of some of the coefficients and differences in the exponent, *v*. The Cox-Ingersoll-Ross(CIR) model has non-zero values for $K_0, K_1, \text{and } H_1$ and has a $v = 0.5$. The Pearson-Sun model is the same as CIR but with the inclusion of $H_0$ with the same 0.5 exponent. Considering models where $v = 1$, we have the Dothan, Merton(Ho-Lee), Vasicek, and Black-Karasinski. Additionally at $v = 1.5$ we have the Constantides-Ingersoll model. We will discuss each of these, and we model some of them in the R-Markdown code.
 
-### -$K_1$: Mean Reversion
+#### -$K_1$: Mean Reversion
 With this coefficient, a negative value can be viewed as a mean-reversion parameter, so that high or low short rates generates low or high drift.
 
 ### Time varying coefficients
 
 Some of the model differences are based purely on whether coefficients are allowed to vary or remain constant. For example, the *Merton model* of the term structure is called *Ho-Lee model* if coefficients are allowed to vary with time. 
 
-## Describing Models
+# Describing Models
 
-We can first describe affine models (linear plus constant models), starting with single-factor models.
+We can first describe affine models (linear plus constant models), starting with single-factor models. The affine class of models have $K_2 = 0$ and $v = 0.5$, which includes the Vasicek model where $H_1 = 0$, the CIR model where $H_0 = 0$, the Merton(Ho-Lee) model where $K_1 = H_1 = 0$, and the Pearson-Sun model.
+
+## Affine class
 
 ### Vasicek interest rate model
 
@@ -57,6 +74,8 @@ $$dR(t) = (\alpha - \beta R(t))dt + \sigma dW(t)$$
 
 where $R(t)$ is the interest rate process and $\alpha, \beta, \text{and }, \sigma$ are positive constants. 
 
+
+## Time Varying Coefficients
 ### Hull - White Model
 
 $$ dR(t) = (a(t) - b(t) R(t)) dt + \sigma(t) d \widetilde{W}(t)$$
@@ -65,4 +84,5 @@ $$ dR(t) = (a(t) - b(t) R(t)) dt + \sigma(t) d \widetilde{W}(t)$$
 
 $$dR(t) = (a-b R(t)) dt + \sigma \sqrt{R(t)} d \widetilde{W}(t)$$ 
 
+## Two Factor Models
 ## Heath-Jarrow-Morton Framework
