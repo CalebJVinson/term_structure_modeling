@@ -55,7 +55,7 @@ $$ dr_t = \left[ K_0(t) + K_1(t)r_t + K_2(t) r_t log(r_t)\right] dt + \left[H_0(
 
 where $K_0, K_1, K_2, H_0,\text{and } H_1$ are continous functions on 0 to T and $v$ is the exponent from 0.5 to 1.5. Each model we discuss has different forms with inclusions of some of the coefficients and differences in the exponent, *v*. The Cox-Ingersoll-Ross(CIR) model has non-zero values for $K_0, K_1, \text{and } H_1$ and has a $v = 0.5$. The Pearson-Sun model is the same as CIR but with the inclusion of $H_0$ with the same 0.5 exponent. Considering models where $v = 1$, we have the Dothan, Merton(Ho-Lee), Vasicek, and Black-Karasinski. Additionally at $v = 1.5$ we have the Constantides-Ingersoll model. We will discuss each of these, and we model some of them in the R-Markdown code.
 
-#### -$K_1$: Mean Reversion
+#### $-K_1$ : Mean Reversion
 With this coefficient, a negative value can be viewed as a mean-reversion parameter, so that high or low short rates generates low or high drift.
 
 ### Time varying coefficients
