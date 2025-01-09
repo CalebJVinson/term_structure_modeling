@@ -30,11 +30,11 @@ From the above description of the short rate, r, we have $\int{0}^{T}|r_t|dt < \
 
 Assuming absence of arbitrage, we can use a probability measure Q with the property that any security with a dividend is a lump-sum payment of Z at s has a price of
 
-$$E_t^{Q}\left[e^{\int{t}^{s} -r_u du} \right] \times Z$$
+$$E_t^{Q} \left[ e^{\int{t}^{s} -r_u du} \right] \times Z$$
 
 where $E^Q$ denotes the $\mathscr{F_t}$-conditional expectation under Q. Z would also be $\mathscr{F_t}$-measurable so the above is well defined. Letting $Z=1$, the price at *t* of the zero-coupon bond that matures at *s* is
 
-$$\Lambda_{t,s} \equiv E_t^{Q}\left[e^{\int{t}^{s} -r_u du \right]$$
+$$ \Lambda_{t,s} \equiv E_t^{Q} \left[e^{\int{t}^{s} -r_u du \right]$$
 
 This process is known as the discount function or loosely, the term structure of interest rates. The term structure is usually in terms of the yield curve where the continuously compounding yield, $y_{t,\tau}$, is defined by 
 
