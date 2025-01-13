@@ -1,3 +1,5 @@
+** Continuously updating model while reading associated texts. **
+
 # Term-Structure Modeling
 
 For this project, I wanted to work with term structures of interest rates and various other methods, tools, and processes that I had seen utilized in other research publications.
