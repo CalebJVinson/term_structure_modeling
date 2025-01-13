@@ -1,4 +1,4 @@
-** Continuously updating model while reading associated texts. **
+***Continuously updating model while reading associated texts.***
 
 # Term-Structure Modeling
 
